@@ -52,6 +52,7 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 ####1. Provide an example of a distortion-corrected image.
 Using the the same camera calibration and distortion coefficients returned from the camera calibration of the chessboard above, I used the same undistort function on a test image of the road below: 
+
 ![alt text][image2]
 
 
@@ -106,72 +107,57 @@ This resulted in the following source and destination points:
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
 Here is the original image with the src points drawn on the left image, and the dst points drawn on the right to show how the warp would be made.
+
 ![alt text][image3]
 ![alt text][image4]
 
 Below is the same image after the warp has been made. Notice that the lines are parellel, which will allow us to do some cool linear algebra!
+
 ![alt text][image5]
 
 
 ####3. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I only used color thresholding to create my thresholded binary image. I did not include gradients, as I felt that gradient thresholding were extremely affected by noise in the images, which caused problems for the harder challenge videos. Rather I made use of the L channels of both HLS and LAB channels to track the bright regions of the image, and the B channel to track the yellow lines on the image. I used top hat morphological operation which helps to focus on areas brighter than their surroundings and ultimately is better suited for lighting changes.
+In the threshold_image function in the fourth code cell of pipeline_notebook Ipython notebook, I only used color thresholding to create my thresholded binary image. I did not include gradients, as I felt that gradient thresholding were extremely affected by noise in the images, which caused problems for the harder challenge videos. Rather I made use of the L channels of both HLS and LAB channels to track the bright regions of the image, and the B channel to track the yellow lines on the image. I used top hat morphological operation which helps to focus on areas brighter than their surroundings and ultimately is better suited for lighting changes. With seperate thresholds created for each color channel, we combine these thresholds with a logical OR operator, to give us a total mask. As our thresholds were quite low, to pick up on small changes in color, we also have a lot of noise that we can reduce using an eroding function. 
 
 ![alt text][image6]
 
-```
-def threshold_image(img):
-    kernel = np.ones((14,14),np.uint8)
-    hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS) 
-    
-    hls_l = hls[:,:,1]
-    th_hls_l = cv2.morphologyEx(hls_l, cv2.MORPH_TOPHAT, kernel)
-    hls_l_binary = np.zeros_like(th_hls_l)
-    hls_l_binary[(th_hls_l > 20) & (th_hls_l <= 255)] = 1
-
-    lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB) 
-    lab_l = lab[:,:,0]
-    th_lab_l = cv2.morphologyEx(lab_l, cv2.MORPH_TOPHAT, kernel)
-    lab_l_binary = np.zeros_like(th_lab_l)
-    lab_l_binary[(th_lab_l > 20) & (th_lab_l <= 255)] = 1
-
-    lab_b = lab[:,:,2]
-    th_lab_b = cv2.morphologyEx(lab_b, cv2.MORPH_TOPHAT, kernel)
-    lab_b_binary = np.zeros_like(th_lab_b)
-    lab_b_binary[(th_lab_b > 5) & (th_lab_b <= 255)] = 1
-
-    full_mask = np.zeros_like(th_hls_l)
-    full_mask[(hls_l_binary == 1) | (lab_l_binary == 1) | (lab_b_binary == 1)] = 1
-
-    kernel = np.ones((6,3),np.uint8)
-    erosion = cv2.erode(full_mask,kernel,iterations = 1)
-
-    return erosion
-```
-
-With seperate thresholds created for each color channel, we combine these thresholds with a logical OR operator, to give us a total mask. As our thresholds were quite low, to pick up on small changes in color, we also have a lot of noise that we can reduce using an eroding function. 
-
-
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-In the locate_line function of the fourth code box in the pipeline_notebook, 
+In the locate_line function of the fourth code box in my pipeline_notebook Ipython notebook, I sum the vertical columns of these binary images, as they are essentially 2D arrays, and create a histogram of these images. I only do this on the bottom half of this image to help us identify the starting point of our line on the bottom of the image.
+
 ![alt text][image7]
+
+By spliting the image into half its width, we can take the maximum point identified in the histogram, and begin to trace the line from there. I split the image into nine vertical segments, which we iterate through looking between a defined horizontal margin around where our maximum point was found. In each iteration, we take the mean of all non-zero pixels within the segment and margin to identify the the best fit of the line for each segment. By combining the means of all nine segments, we get a good idea of where the line is, and use numpy's polyfit function to get the polynomial coefficients for the line that we have found. 
+
+Below is an image showing the rectangles, made by margins and segments, that we take an average of non-zero pixels to locate the line. 
+
 ![alt text][image8]
 
-In the line_in_windows function of the fourth code box in the pipeline_notebook, 
+The line_in_windows function of the fourth code box in the pipeline_notebook is intended for use with videos, where we will have a previously found line. Instead of using the relatively inefficient locate_line function, where we iterate through nine segments of an image, we take the line found in the previous image and just search and get the mean for non-zero pixels within a margin of the pre-existing line. This allows us to quickly search for lines given previous context.
+
+Below is an image showing the margins on either side of the line that non-zero pixels would be averaged within.
 
 ![alt text][image9]
+
+We use these lines to color in the portion of this image that we will highlight.
+
 ![alt text][image10]
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+Almost as soon as I find a line in the locate_line or line_in_windows function of my pipeline_notebook, I make a call to my get_radius function, which takes uses the coefficients of the line in the following equation: ​(1 + ( 2Ay + B)^2 )^(3/2) / 2A. This equation returns the radius of the curve in pixel space, but not in terms of physical space. In order to calculate this we were able to use the lane lines in pixel space and convert it to real world space using known lane line regulations. With this we found that in the horizontal (x direction) the conversion is about 3.7 meters for every 210 pixels. In the y direction, it is about 3 meters for every 170 pixels. With these converstions, we can then use the values in our calculations of the formula above and find lane curvature by the radius in terms of meters.
+
+In the overlay_image function of the fourth code cell in the pipeline_notebook, I also calculate the distance from center. I am able to do this by averaging the x values of the left and right line, giving me a midpoint of the lane, and then subtracting the midpoint of the image from the lane mid-point. If the calculation is negetive it means the lane mid-point is on the left side. I use the same conversion from pixel-to-real space as I did with the curvature to find the distance from the center in meters.
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+My pipeline function in the fourth code cell of my pipeline_notebook will return an image that has the highlighted lane region warped back to the original perspective. 
 
 ![alt text][image11]
+
+I also calculated an approximate steering angle for these images which I present below.
+
 ![alt text][image12]
 
 ---
