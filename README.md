@@ -186,4 +186,8 @@ Here's a [link to my harder challenge result][video3]
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+In this project I felt that the project video and first challenge were somewhat manageable, but the harder challenge video exploited many of the weaknesses of my current pipeline. Extreme differences in brightness and very wide turns caused my line detections to get of course quickly. I think this could be improved in a couple of different ways, especially if I had more time to work on this challenge. First I think that I should not be hard coding the warp matrix points. These should be dynamically adjusting to a vanishing point, which could be detected with further image preprocessing. Using a dynamic vanishing point would allow my pipeline to adjust to extreme turns, where a majority of lines in the image are pointing elsewhere from center.
+
+I am not sure what other thresholding techniques could be used to adjust for extreme brightness changes, but perhaps this is where we would need more sensory data than just images to make more accurate detection. If I had more time, I could make a smarter "fall back" system, where if one line is not found it will be influenced or guided by the other line. As of now in my pipeline, if one line gets lost it doesn't get updated until the line is founded again, and in turning situations, this means that the line gets farther and farther off track while not being updated.
+
+I live in a snowy area, and I get really concerned about how lane line detection will work in bad/snowy weather.  
