@@ -30,8 +30,8 @@ The goals / steps of this project are the following:
 [image10]: ./output_images/highlighted_region.png "Output"
 [image11]: ./output_images/original_highlighted.png "Output"
 [image12]: ./output_images/final_output.png "Output"
-[video1]: https://youtu.be/Kyismlnbhn8 "Video"
-[video2]: https://youtu.be/_QoFJHZtx04 "Video"
+[video1]: https://youtu.be/_QoFJHZtx04 "Video"
+[video2]: https://youtu.be/Kyismlnbhn8 "Video"
 [video3]: https://youtu.be/FPsG7UG4tfQ "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
