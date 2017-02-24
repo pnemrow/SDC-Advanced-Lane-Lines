@@ -18,7 +18,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./output_images/chess.gif "Undistorted Chess Board"
+[image1]: ./output_images/chessboard.gif "Undistorted Chess Board"
 [image2]: ./output_images/distortion.gif "Undistorted Road"
 [image3]: ./output_images/warped_image.png "Binary Example"
 [image4]: ./output_images/thresholded_image.png "Warp Example"
