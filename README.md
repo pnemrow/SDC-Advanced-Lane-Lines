@@ -30,7 +30,9 @@ The goals / steps of this project are the following:
 [image10]: ./output_images/highlighted_region.png "Output"
 [image11]: ./output_images/original_highlighted.png "Output"
 [image12]: ./output_images/final_output.png "Output"
-[video1]: ./project_video.mp4 "Video"
+[video1]: https://youtu.be/Kyismlnbhn8 "Video"
+[video2]: https://youtu.be/_QoFJHZtx04 "Video"
+[video3]: https://youtu.be/FPsG7UG4tfQ "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 ###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -146,7 +148,13 @@ We use these lines to color in the portion of this image that we will highlight.
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-Almost as soon as I find a line in the locate_line or line_in_windows function of my pipeline_notebook, I make a call to my get_radius function, which takes uses the coefficients of the line in the following equation: ​(1 + ( 2Ay + B)^2 )^(3/2) / 2A. This equation returns the radius of the curve in pixel space, but not in terms of physical space. In order to calculate this we were able to use the lane lines in pixel space and convert it to real world space using known lane line regulations. With this we found that in the horizontal (x direction) the conversion is about 3.7 meters for every 210 pixels. In the y direction, it is about 3 meters for every 170 pixels. With these converstions, we can then use the values in our calculations of the formula above and find lane curvature by the radius in terms of meters.
+Almost as soon as I find a line in the locate_line or line_in_windows function of my pipeline_notebook, I make a call to my get_radius function, which takes uses the coefficients of the line in the following equation: ​
+
+```
+(1 + ( 2Ay + B)^2 )^(3/2) / 2A
+```
+
+This equation returns the radius of the curve in pixel space, but not in terms of physical space. In order to calculate this we were able to use the lane lines in pixel space and convert it to real world space using known lane line regulations. With this we found that in the horizontal (x direction) the conversion is about 3.7 meters for every 210 pixels. In the y direction, it is about 3 meters for every 170 pixels. With these converstions, we can then use the values in our calculations of the formula above and find lane curvature by the radius in terms of meters.
 
 In the overlay_image function of the fourth code cell in the pipeline_notebook, I also calculate the distance from center. I am able to do this by averaging the x values of the left and right line, giving me a midpoint of the lane, and then subtracting the midpoint of the image from the lane mid-point. If the calculation is negetive it means the lane mid-point is on the left side. I use the same conversion from pixel-to-real space as I did with the curvature to find the distance from the center in meters.
 
@@ -166,7 +174,9 @@ I also calculated an approximate steering angle for these images which I present
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my project video result][video1]
+Here's a [link to my challenge result][video2]
+Here's a [link to my harder challenge result][video3]
 
 ---
 
