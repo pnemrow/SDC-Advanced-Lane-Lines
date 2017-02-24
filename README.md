@@ -175,7 +175,9 @@ I also calculated an approximate steering angle for these images which I present
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
 Here's a [link to my project video result][video1]
+
 Here's a [link to my challenge result][video2]
+
 Here's a [link to my harder challenge result][video3]
 
 ---
