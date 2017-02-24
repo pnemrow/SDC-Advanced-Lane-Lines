@@ -21,14 +21,15 @@ The goals / steps of this project are the following:
 [image1]: ./output_images/chessboard.gif "Undistorted Chess Board"
 [image2]: ./output_images/distortion.gif "Undistorted Road"
 [image3]: ./output_images/drawn_polygon.png "Drawn Polygon"
-[image4]: ./output_images/warped_image.png "Binary Example"
-[image5]: ./output_images/thresholded_image.png "Warp Example"
-[image6]: ./output_images/histogram.png "Histogram"
-[image7]: ./output_images/detected_line.png "Fit Visual"
-[image8]: ./output_images/masked_detected_image.png "Output"
-[image9]: ./output_images/highlighted_region.png "Output"
-[image10]: ./output_images/original_highlighted.png "Output"
-[image11]: ./output_images/final_output.png "Output"
+[image4]: ./output_images/polygon_new_fit.png "New Fit"
+[image5]: ./output_images/warped_image.png "Binary Example"
+[image6]: ./output_images/thresholded_image.png "Warp Example"
+[image7]: ./output_images/histogram.png "Histogram"
+[image8]: ./output_images/detected_line.png "Fit Visual"
+[image9]: ./output_images/masked_detected_image.png "Output"
+[image10]: ./output_images/highlighted_region.png "Output"
+[image11]: ./output_images/original_highlighted.png "Output"
+[image12]: ./output_images/final_output.png "Output"
 [video1]: ./project_video.mp4 "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
@@ -99,21 +100,22 @@ This resulted in the following source and destination points:
 
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 448, 479      | 96, 0         | 
-| 832, 479      | 544, 720      |
+| 448,  479     | 96,  0          
+| 832,  479     | 544, 720      |
 | 1472, 680     | 544, 720      |
-| -192, 680     | 96, 0         |
+| -192, 680     | 96,  0        |
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
 ![alt text][image3]
 ![alt text][image4]
+![alt text][image5]
 
 
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-![alt text][image5]
+![alt text][image6]
 
 
 
@@ -121,10 +123,10 @@ I used a combination of color and gradient thresholds to generate a binary image
 
 Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
 
-![alt text][image6]
 ![alt text][image7]
 ![alt text][image8]
 ![alt text][image9]
+![alt text][image10]
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
@@ -134,8 +136,8 @@ I did this in lines # through # in my code in `my_other_file.py`
 
 I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![alt text][image10]
 ![alt text][image11]
+![alt text][image12]
 
 ---
 
