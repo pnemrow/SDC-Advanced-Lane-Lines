@@ -55,9 +55,9 @@ Using the the same camera calibration and distortion coefficients returned from 
 ![alt text][image2]
 
 
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+####2. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+Transforming the perspective of an image is performed in my main "pipeline" function in code cell 4 of my pipeline_notebook Ipython notebook. I first define the shape I would like the output image to be, and get a warp matrix, and its inverse (to be used in later unwarping) to pass to the cv2.warpPerspective function. This function takes an image and then warps it by matching the source pixel position with the destination pixel positions defined by the warp matrix.:
 
 ```
 def pipeline(img):
@@ -68,27 +68,24 @@ def pipeline(img):
     ...
 
 ```
+
+Here is where I create a warp matrix and an inverse warp matrix.
 ```
 def get_warp_matrix(img):
-    img_size = (int(img.shape[1]/2), img.shape[0])
-    bot_width = 1.3
-    mid_width = .30
-    height_pct = .665
-    bottom_trim = .945
     src = np.float32([
-            [img.shape[1]*(.5-mid_width/2), img.shape[0]*height_pct],
-            [img.shape[1]*(.5+mid_width/2), img.shape[0]*height_pct], 
-            [img.shape[1]*(.5+bot_width/2), img.shape[0]*bottom_trim], 
-            [img.shape[1]*(.5-bot_width/2), img.shape[0]*bottom_trim]
+        [448., 479.],
+        [832., 479.],
+        [1472., 680.],
+        [-192., 680.]
     ])
-    offset = img_size[0]*.15
+
     dst = np.float32([
-            [offset, 0], 
-            [img_size[0] - offset, 0], 
-            [img_size[0] - offset, img_size[1]], 
-            [offset, img_size[1]]
+        [96., 0.],
+        [544., 0.],
+        [544., 720.],
+        [96., 720.]
     ])
-    
+
     M = cv2.getPerspectiveTransform(src,dst)
     M_inv = cv2.getPerspectiveTransform(dst, src)
     
@@ -100,31 +97,69 @@ This resulted in the following source and destination points:
 
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 448,  479     | 96,  0          
-| 832,  479     | 544, 720      |
+| 448,  479     | 96,  0        | 
+| 832,  479     | 544, 0        |
 | 1472, 680     | 544, 720      |
-| -192, 680     | 96,  0        |
+| -192, 680     | 96,  720      |
+
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
+Here is the original image with the src points drawn on the left image, and the dst points drawn on the right to show how the warp would be made.
 ![alt text][image3]
 ![alt text][image4]
+
+Below is the same image after the warp has been made. Notice that the lines are parellel, which will allow us to do some cool linear algebra!
 ![alt text][image5]
 
 
-####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+####3. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+
+I only used color thresholding to create my thresholded binary image. I did not include gradients, as I felt that gradient thresholding were extremely affected by noise in the images, which caused problems for the harder challenge videos. Rather I made use of the L channels of both HLS and LAB channels to track the bright regions of the image, and the B channel to track the yellow lines on the image. I used top hat morphological operation which helps to focus on areas brighter than their surroundings and ultimately is better suited for lighting changes.
 
 ![alt text][image6]
 
+```
+def threshold_image(img):
+    kernel = np.ones((14,14),np.uint8)
+    hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS) 
+    
+    hls_l = hls[:,:,1]
+    th_hls_l = cv2.morphologyEx(hls_l, cv2.MORPH_TOPHAT, kernel)
+    hls_l_binary = np.zeros_like(th_hls_l)
+    hls_l_binary[(th_hls_l > 20) & (th_hls_l <= 255)] = 1
+
+    lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB) 
+    lab_l = lab[:,:,0]
+    th_lab_l = cv2.morphologyEx(lab_l, cv2.MORPH_TOPHAT, kernel)
+    lab_l_binary = np.zeros_like(th_lab_l)
+    lab_l_binary[(th_lab_l > 20) & (th_lab_l <= 255)] = 1
+
+    lab_b = lab[:,:,2]
+    th_lab_b = cv2.morphologyEx(lab_b, cv2.MORPH_TOPHAT, kernel)
+    lab_b_binary = np.zeros_like(th_lab_b)
+    lab_b_binary[(th_lab_b > 5) & (th_lab_b <= 255)] = 1
+
+    full_mask = np.zeros_like(th_hls_l)
+    full_mask[(hls_l_binary == 1) | (lab_l_binary == 1) | (lab_b_binary == 1)] = 1
+
+    kernel = np.ones((6,3),np.uint8)
+    erosion = cv2.erode(full_mask,kernel,iterations = 1)
+
+    return erosion
+```
+
+With seperate thresholds created for each color channel, we combine these thresholds with a logical OR operator, to give us a total mask. As our thresholds were quite low, to pick up on small changes in color, we also have a lot of noise that we can reduce using an eroding function. 
 
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
-
+In the locate_line function of the fourth code box in the pipeline_notebook, 
 ![alt text][image7]
 ![alt text][image8]
+
+In the line_in_windows function of the fourth code box in the pipeline_notebook, 
+
 ![alt text][image9]
 ![alt text][image10]
 
